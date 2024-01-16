@@ -1,0 +1,98 @@
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.os.Bundle
+import android.provider.Settings
+import android.widget.Button
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var locationManager: LocationManager
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        val gpsButton: Button = findViewById(R.id.gpsButton)
+        val chatButton: Button = findViewById(R.id.chatButton)
+        val distressButton: Button = findViewById(R.id.distressButton)
+
+        gpsButton.setOnClickListener {
+            if (checkLocationPermission()) {
+                shareRealTimeLocation()
+            } else {
+                requestLocationPermission()
+            }
+        }
+
+        chatButton.setOnClickListener {
+            openChat()
+        }
+
+        distressButton.setOnClickListener {
+            activateDistressFeature()
+        }
+    }
+
+    private fun checkLocationPermission(): Boolean {
+        return (ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun requestLocationPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            LOCATION_PERMISSION_REQUEST_CODE
+        )
+    }
+
+    private fun shareRealTimeLocation() {
+        if (isLocationEnabled()) {
+            // Get the last known location
+            val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+
+            if (location != null) {
+                showToast("Sharing real-time location: ${location.latitude}, ${location.longitude}")
+            } else {
+                showToast("Location not available")
+            }
+        } else {
+            showToast("Location services are not enabled. Please enable them in settings.")
+            startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        }
+    }
+
+    private fun openChat() {
+        // Placeholder logic for opening the chat feature
+        showToast("Opening chat feature for communication.")
+    }
+
+    private fun activateDistressFeature() {
+        // Placeholder logic for distress feature
+        // For example, sending an alert to campus security or displaying a message to the user
+        showToast("Distress feature activated! Help is on the way.")
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+    }
+}
